@@ -2,3 +2,6 @@ out/**
 .gradle
 .gradleBuild
 .idea/
+.classpath
+.project
+dist/
