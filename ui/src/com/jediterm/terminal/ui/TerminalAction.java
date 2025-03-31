@@ -14,13 +14,13 @@ import java.util.function.Supplier;
  * @author traff
  */
 public class TerminalAction {
-  private final TerminalActionPresentation myPresentation;
-  private final Predicate<KeyEvent> myRunnable;
+  public final TerminalActionPresentation myPresentation;
+  public final Predicate<KeyEvent> myRunnable;
 
-  private Supplier<Boolean> myEnabledSupplier = () -> true;
-  private Integer myMnemonicKeyCode = null;
-  private boolean mySeparatorBefore = false;
-  private boolean myHidden = false;
+  public Supplier<Boolean> myEnabledSupplier = () -> true;
+  public Integer myMnemonicKeyCode = null;
+  public boolean mySeparatorBefore = false;
+  public boolean myHidden = false;
 
   public TerminalAction(@NotNull TerminalActionPresentation presentation, @NotNull Predicate<KeyEvent> runnable) {
     myPresentation = presentation;
@@ -89,7 +89,7 @@ public class TerminalAction {
     return this;
   }
   
-  private @NotNull JMenuItem toMenuItem() {
+  public @NotNull JMenuItem toMenuItem() {
     JMenuItem menuItem = new JMenuItem(myPresentation.getName());
 
     if (myMnemonicKeyCode != null) {
@@ -156,7 +156,7 @@ public class TerminalAction {
     }
   }
 
-  private static @NotNull List<TerminalActionProvider> listActionProviders(@NotNull TerminalActionProvider provider) {
+  public static @NotNull List<TerminalActionProvider> listActionProviders(@NotNull TerminalActionProvider provider) {
     var providers = new ArrayList<TerminalActionProvider>();
     for (var p = provider; p != null; p = p.getNextProvider()) {
       providers.add(0, p);
