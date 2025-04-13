@@ -24,11 +24,11 @@ import java.util.List;
  */
 
 public class JediEmulator extends DataStreamIteratingEmulator {
-  private static final Logger LOG = LoggerFactory.getLogger(JediEmulator.class);
+  public static final Logger LOG = LoggerFactory.getLogger(JediEmulator.class);
 
-  private static int logThrottlerCounter = 0;
-  private static final int logThrottlerRatio = 100;
-  private static int logThrottlerLimit = logThrottlerRatio;
+  public static int logThrottlerCounter = 0;
+  public static final int logThrottlerRatio = 100;
+  public static int logThrottlerLimit = logThrottlerRatio;
 
   public JediEmulator(TerminalDataStream dataStream, Terminal terminal) {
     super(dataStream, terminal);
@@ -93,7 +93,7 @@ public class JediEmulator extends DataStreamIteratingEmulator {
     }
   }
 
-  private void processEscapeSequence(char ch, Terminal terminal) throws IOException {
+  public void processEscapeSequence(char ch, Terminal terminal) throws IOException {
     switch (ch) {
       case '[': // Control Sequence Introducer (CSI)
         ControlSequence args = new ControlSequence(myDataStream);
@@ -192,7 +192,7 @@ public class JediEmulator extends DataStreamIteratingEmulator {
     }
   }
 
-  private void processOsc() throws IOException {
+  public void processOsc() throws IOException {
     SystemCommandSequence osc = new SystemCommandSequence(myDataStream);
     try {
       boolean processed = doProcessOsc(osc);
@@ -205,11 +205,11 @@ public class JediEmulator extends DataStreamIteratingEmulator {
     }
   }
 
-  private boolean deviceControlString(SystemCommandSequence args) {
+  public boolean deviceControlString(SystemCommandSequence args) {
     return false;
   }
 
-  private boolean doProcessOsc(@NotNull SystemCommandSequence args) {
+  public boolean doProcessOsc(@NotNull SystemCommandSequence args) {
     // https://invisible-island.net/xterm/ctlseqs/ctlseqs.html#h3-Operating-System-Commands
     int ps = args.getIntAt(0, -1);
     switch (ps) {
@@ -261,7 +261,7 @@ public class JediEmulator extends DataStreamIteratingEmulator {
    * the same form which can be used to set the corresponding dynamic color.
    * </a>
    */
-  private boolean processColorQuery(@NotNull SystemCommandSequence args) {
+  public boolean processColorQuery(@NotNull SystemCommandSequence args) {
     if (!"?".equals(args.getStringAt(1))) {
       return false;
     }
@@ -286,7 +286,7 @@ public class JediEmulator extends DataStreamIteratingEmulator {
     return true;
   }
 
-  private void processTwoCharSequence(char ch, Terminal terminal) throws IOException {
+  public void processTwoCharSequence(char ch, Terminal terminal) throws IOException {
     char secondCh = myDataStream.getChar();
     switch (ch) {
       case ' ':
@@ -363,7 +363,7 @@ public class JediEmulator extends DataStreamIteratingEmulator {
    * @param sequenceChars are the characters of the unhandled sequence following the ESC character
    *                      (first ESC is excluded from the sequenceChars)
    */
-  protected void unsupported(char... sequenceChars) {
+  public void unsupported(char... sequenceChars) {
     unsupported(escapeSequenceToString(sequenceChars));
   }
 
@@ -372,11 +372,11 @@ public class JediEmulator extends DataStreamIteratingEmulator {
    *
    * @param msg The message describing the sequence
    */
-  private static void unsupported(String msg) {
+  public static void unsupported(String msg) {
     unhandledLogThrottler("Unsupported control characters: " + msg);
   }
 
-  private static void unhandledLogThrottler(String msg) {
+  public static void unhandledLogThrottler(String msg) {
     logThrottlerCounter++;
     if (logThrottlerCounter < logThrottlerLimit) {
       if (logThrottlerCounter % (logThrottlerLimit / logThrottlerRatio) == 0) {
@@ -390,7 +390,7 @@ public class JediEmulator extends DataStreamIteratingEmulator {
     }
   }
 
-  private static String escapeSequenceToString(final char... b) {
+  public static String escapeSequenceToString(final char... b) {
     StringBuilder sb = new StringBuilder("ESC ");
 
     for (char c : b) {
@@ -400,7 +400,7 @@ public class JediEmulator extends DataStreamIteratingEmulator {
     return sb.toString();
   }
 
-  private boolean processControlSequence(ControlSequence args) {
+  public boolean processControlSequence(ControlSequence args) {
     switch (args.getFinalChar()) {
       case '@':
         return insertBlankCharacters(args); //ICH
@@ -451,10 +451,10 @@ public class JediEmulator extends DataStreamIteratingEmulator {
         return linePositionAbsolute(args);
       case 'g': // Tab Clear (TBC)
         return tabClear(args.getArg(0, 0));
-      case 'h': //Set Mode (SM) or DEC Private Mode Set (DECSET)
-        return setModeOrPrivateMode(args, true);
-      case 'l': //Reset Mode (RM) or DEC Private Mode Reset (DECRST)
-        return setModeOrPrivateMode(args, false);
+      case 'h': //Set Mode (SM) or DEC public Mode Set (DECSET)
+        return setModeOrpublicMode(args, true);
+      case 'l': //Reset Mode (RM) or DEC public Mode Reset (DECRST)
+        return setModeOrpublicMode(args, false);
       case 'm':
         if (args.startsWithMoreMark()) { //Set or reset resource-values used by xterm
           // to decide whether to construct escape sequences holding information about
@@ -475,7 +475,7 @@ public class JediEmulator extends DataStreamIteratingEmulator {
         return cursorShape(args); //DECSCUSR
       case 'r':
         if (args.startsWithQuestionMark()) {
-          return restoreDecPrivateModeValues(args); //
+          return restoreDecpublicModeValues(args); //
         } else {
           //Set Top and Bottom Margins
           return setScrollingRegion(args); //DECSTBM
@@ -487,7 +487,7 @@ public class JediEmulator extends DataStreamIteratingEmulator {
     }
   }
 
-  private boolean windowManipulation(ControlSequence args) {
+  public boolean windowManipulation(ControlSequence args) {
     // CSI Ps ; Ps ; Ps t
     switch (args.getArg(0, -1)) {
       case 8:
@@ -514,7 +514,7 @@ public class JediEmulator extends DataStreamIteratingEmulator {
     }
   }
 
-  private boolean csi22(ControlSequence args) { // TODO: support icon title
+  public boolean csi22(ControlSequence args) { // TODO: support icon title
     switch (args.getArg(1, -1)) {
       case 0: // Save xterm icon and window title on stack.
       case 2: // Save xterm window title on stack.
@@ -527,7 +527,7 @@ public class JediEmulator extends DataStreamIteratingEmulator {
     }
   }
 
-  private boolean csi23(ControlSequence args) { // TODO: support icon title
+  public boolean csi23(ControlSequence args) { // TODO: support icon title
     switch (args.getArg(1, -1)) {
       case 0: // Restore xterm icon and window title on stack.
       case 2: // Restore xterm window title on stack.
@@ -540,7 +540,7 @@ public class JediEmulator extends DataStreamIteratingEmulator {
     }
   }
 
-  private boolean tabClear(int mode) {
+  public boolean tabClear(int mode) {
     if (mode == 0) { //Clear Current Column (default)
       myTerminal.clearTabStopAtCursor();
       return true;
@@ -552,13 +552,13 @@ public class JediEmulator extends DataStreamIteratingEmulator {
     }
   }
 
-  private boolean eraseCharacters(ControlSequence args) {
+  public boolean eraseCharacters(ControlSequence args) {
     myTerminal.eraseCharacters(args.getArg(0, 1));
     return true;
   }
 
-  private boolean setModeOrPrivateMode(ControlSequence args, boolean enabled) {
-    if (args.startsWithQuestionMark()) { // DEC Private Mode
+  public boolean setModeOrpublicMode(ControlSequence args, boolean enabled) {
+    if (args.startsWithQuestionMark()) { // DEC public Mode
       switch (args.getArg(0, -1)) {
         case 1: //Cursor Keys Mode (DECCKM)
           setModeEnabled(TerminalMode.CursorKey, enabled);
@@ -696,20 +696,20 @@ public class JediEmulator extends DataStreamIteratingEmulator {
     }
   }
 
-  private boolean linePositionAbsolute(ControlSequence args) {
+  public boolean linePositionAbsolute(ControlSequence args) {
     int y = args.getArg(0, 1);
     myTerminal.linePositionAbsolute(y);
 
     return true;
   }
 
-  private boolean restoreDecPrivateModeValues(ControlSequence args) {
+  public boolean restoreDecpublicModeValues(ControlSequence args) {
     LOG.warn("Unsupported: " + args);
 
     return false;
   }
 
-  private boolean deviceStatusReport(ControlSequence args) {
+  public boolean deviceStatusReport(ControlSequence args) {
     if (args.startsWithQuestionMark()) {
       LOG.warn("Don't support DEC-specific Device Report Status");
       return false;
@@ -734,7 +734,7 @@ public class JediEmulator extends DataStreamIteratingEmulator {
     }
   }
 
-  private boolean cursorShape(ControlSequence args) {
+  public boolean cursorShape(ControlSequence args) {
     myTerminal.cursorBackward(1);
     switch (args.getArg(0, 0)) {
       case 0:
@@ -762,12 +762,12 @@ public class JediEmulator extends DataStreamIteratingEmulator {
     }
   }
 
-  private boolean insertLines(ControlSequence args) {
+  public boolean insertLines(ControlSequence args) {
     myTerminal.insertLines(args.getArg(0, 1));
     return true;
   }
 
-  private boolean sendDeviceAttributes() {
+  public boolean sendDeviceAttributes() {
     if (LOG.isDebugEnabled()) {
       LOG.debug("Identifying to remote system as VT102");
     }
@@ -776,7 +776,7 @@ public class JediEmulator extends DataStreamIteratingEmulator {
     return true;
   }
 
-  private boolean cursorHorizontalAbsolute(ControlSequence args) {
+  public boolean cursorHorizontalAbsolute(ControlSequence args) {
     int x = args.getArg(0, 1);
 
     myTerminal.cursorHorizontalAbsolute(x);
@@ -784,7 +784,7 @@ public class JediEmulator extends DataStreamIteratingEmulator {
     return true;
   }
 
-  private boolean cursorNextLine(ControlSequence args) {
+  public boolean cursorNextLine(ControlSequence args) {
     int dx = args.getArg(0, 1);
     dx = dx == 0 ? 1 : dx;
     myTerminal.cursorDown(dx);
@@ -793,7 +793,7 @@ public class JediEmulator extends DataStreamIteratingEmulator {
     return true;
   }
 
-  private boolean cursorPrecedingLine(ControlSequence args) {
+  public boolean cursorPrecedingLine(ControlSequence args) {
     int dx = args.getArg(0, 1);
     dx = dx == 0 ? 1 : dx;
     myTerminal.cursorUp(dx);
@@ -803,7 +803,7 @@ public class JediEmulator extends DataStreamIteratingEmulator {
     return true;
   }
 
-  private boolean insertBlankCharacters(ControlSequence args) {
+  public boolean insertBlankCharacters(ControlSequence args) {
     final int count = args.getArg(0, 1);
 
     myTerminal.insertBlankCharacters(count);
@@ -811,7 +811,7 @@ public class JediEmulator extends DataStreamIteratingEmulator {
     return true;
   }
 
-  private boolean eraseInDisplay(ControlSequence args) {
+  public boolean eraseInDisplay(ControlSequence args) {
     if (args.startsWithQuestionMark()) {
       // Selective Erase (DECSED) is not supported
       return false;
@@ -820,7 +820,7 @@ public class JediEmulator extends DataStreamIteratingEmulator {
     return true;
   }
 
-  private boolean eraseInLine(ControlSequence args) {
+  public boolean eraseInLine(ControlSequence args) {
     // ESC [ Ps K
     final int arg = args.getArg(0, 0);
 
@@ -834,13 +834,13 @@ public class JediEmulator extends DataStreamIteratingEmulator {
     return true;
   }
 
-  private boolean deleteLines(ControlSequence args) {
+  public boolean deleteLines(ControlSequence args) {
     // ESC [ Ps M
     myTerminal.deleteLines(args.getArg(0, 1));
     return true;
   }
 
-  private boolean deleteCharacters(ControlSequence args) {
+  public boolean deleteCharacters(ControlSequence args) {
     // ESC [ Ps P
     final int arg = args.getArg(0, 1);
 
@@ -849,7 +849,7 @@ public class JediEmulator extends DataStreamIteratingEmulator {
     return true;
   }
 
-  private boolean cursorBackward(ControlSequence args) {
+  public boolean cursorBackward(ControlSequence args) {
     int dx = args.getArg(0, 1);
     dx = dx == 0 ? 1 : dx;
 
@@ -858,7 +858,7 @@ public class JediEmulator extends DataStreamIteratingEmulator {
     return true;
   }
 
-  private boolean setScrollingRegion(ControlSequence args) {
+  public boolean setScrollingRegion(ControlSequence args) {
     final int top = args.getArg(0, 1);
     final int bottom = args.getArg(1, myTerminal.getTerminalHeight());
 
@@ -867,19 +867,19 @@ public class JediEmulator extends DataStreamIteratingEmulator {
     return true;
   }
 
-  private boolean scrollUp(ControlSequence args) {
+  public boolean scrollUp(ControlSequence args) {
     int count = args.getArg(0, 1);
     myTerminal.scrollUp(count);
     return true;
   }
 
-  private boolean scrollDown(ControlSequence args) {
+  public boolean scrollDown(ControlSequence args) {
     int count = args.getArg(0, 1);
     myTerminal.scrollDown(count);
     return true;
   }
 
-  private boolean cursorForward(ControlSequence args) {
+  public boolean cursorForward(ControlSequence args) {
     int countX = args.getArg(0, 1);
     countX = countX == 0 ? 1 : countX;
 
@@ -888,14 +888,14 @@ public class JediEmulator extends DataStreamIteratingEmulator {
     return true;
   }
 
-  private boolean cursorDown(ControlSequence cs) {
+  public boolean cursorDown(ControlSequence cs) {
     int countY = cs.getArg(0, 0);
     countY = countY == 0 ? 1 : countY;
     myTerminal.cursorDown(countY);
     return true;
   }
 
-  private boolean cursorPosition(ControlSequence cs) {
+  public boolean cursorPosition(ControlSequence cs) {
     final int argy = cs.getArg(0, 1);
     final int argx = cs.getArg(1, 1);
 
@@ -904,7 +904,7 @@ public class JediEmulator extends DataStreamIteratingEmulator {
     return true;
   }
 
-  private boolean characterAttributes(final ControlSequence args) {
+  public boolean characterAttributes(final ControlSequence args) {
     TextStyle styleState = createStyleState(myTerminal.getStyleState().getCurrent(), args);
 
     myTerminal.characterAttributes(styleState);
@@ -913,7 +913,7 @@ public class JediEmulator extends DataStreamIteratingEmulator {
   }
 
   @NotNull
-  private static TextStyle createStyleState(@NotNull TextStyle textStyle, ControlSequence args) {
+  public static TextStyle createStyleState(@NotNull TextStyle textStyle, ControlSequence args) {
     TextStyle.Builder builder = textStyle.toBuilder();
     final int argCount = args.getCount();
     if (argCount == 0) {
@@ -1051,7 +1051,7 @@ public class JediEmulator extends DataStreamIteratingEmulator {
     return builder.build();
   }
 
-  private static TerminalColor getColor256(ControlSequence args, int index) {
+  public static TerminalColor getColor256(ControlSequence args, int index) {
     int code = args.getArg(index + 1, 0);
 
     if (code == 2) {
@@ -1076,7 +1076,7 @@ public class JediEmulator extends DataStreamIteratingEmulator {
     }
   }
 
-  private static int getColor256Step(ControlSequence args, int i) {
+  public static int getColor256Step(ControlSequence args, int i) {
     int code = args.getArg(i + 1, 0);
     if (code == 2) {
       return 5;
@@ -1086,14 +1086,14 @@ public class JediEmulator extends DataStreamIteratingEmulator {
     return 1;
   }
 
-  private boolean cursorUp(ControlSequence cs) {
+  public boolean cursorUp(ControlSequence cs) {
     int arg = cs.getArg(0, 0);
     arg = arg == 0 ? 1 : arg;
     myTerminal.cursorUp(arg);
     return true;
   }
 
-  private void setModeEnabled(final TerminalMode mode, final boolean enabled) {
+  public void setModeEnabled(final TerminalMode mode, final boolean enabled) {
     if (LOG.isDebugEnabled()) {
       LOG.info("Setting mode " + mode + " enabled = " + enabled);
     }
