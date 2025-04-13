@@ -34,27 +34,27 @@ import java.util.function.Consumer;
  * <p/>
  */
 public class JediTermWidget extends JPanel implements TerminalSession, TerminalWidget, TerminalActionProvider {
-  private static final Logger LOG = LoggerFactory.getLogger(JediTermWidget.class);
+  public static final Logger LOG = LoggerFactory.getLogger(JediTermWidget.class);
 
-  protected final TerminalPanel myTerminalPanel;
-  private final JScrollBar myScrollBar;
-  protected final JediTerminal myTerminal;
-  private final AtomicReference<Session> myRunningSession = new AtomicReference<>();
-  private final JediTermTypeAheadModel myTypeAheadTerminalModel;
-  private final TerminalTypeAheadManager myTypeAheadManager;
-  private JediTermSearchComponent myFindComponent;
+  public final TerminalPanel myTerminalPanel;
+  public final JScrollBar myScrollBar;
+  public final JediTerminal myTerminal;
+  public final AtomicReference<Session> myRunningSession = new AtomicReference<>();
+  public final JediTermTypeAheadModel myTypeAheadTerminalModel;
+  public final TerminalTypeAheadManager myTypeAheadManager;
+  public JediTermSearchComponent myFindComponent;
   @SuppressWarnings("removal")
-  private final PreConnectHandler myPreConnectHandler;
-  private TtyConnector myTtyConnector;
-  private TerminalStarter myTerminalStarter;
-  private final CompletableFuture<TerminalStarter> myTerminalStarterFuture = new CompletableFuture<>();
-  protected final SettingsProvider mySettingsProvider;
-  private TerminalActionProvider myNextActionProvider;
-  private final JLayeredPane myInnerPanel;
-  private final TextProcessing myTextProcessing;
-  private final List<TerminalWidgetListener> myListeners = new CopyOnWriteArrayList<>();
-  private final Object myExecutorServiceManagerLock = new Object();
-  private volatile TerminalExecutorServiceManager myExecutorServiceManager;
+  public final PreConnectHandler myPreConnectHandler;
+  public TtyConnector myTtyConnector;
+  public TerminalStarter myTerminalStarter;
+  public final CompletableFuture<TerminalStarter> myTerminalStarterFuture = new CompletableFuture<>();
+  public final SettingsProvider mySettingsProvider;
+  public TerminalActionProvider myNextActionProvider;
+  public final JLayeredPane myInnerPanel;
+  public final TextProcessing myTextProcessing;
+  public final List<TerminalWidgetListener> myListeners = new CopyOnWriteArrayList<>();
+  public final Object myExecutorServiceManagerLock = new Object();
+  public volatile TerminalExecutorServiceManager myExecutorServiceManager;
 
   public JediTermWidget(@NotNull SettingsProvider settingsProvider) {
     this(80, 24, settingsProvider);
@@ -111,23 +111,23 @@ public class JediTermWidget extends JPanel implements TerminalSession, TerminalW
     myTerminalPanel.setVisible(true);
   }
 
-  protected JScrollBar createScrollBar() {
+  public JScrollBar createScrollBar() {
     JScrollBar scrollBar = new JScrollBar();
     scrollBar.setUI(new FindResultScrollBarUI());
     return scrollBar;
   }
 
-  protected StyleState createDefaultStyle() {
+  public StyleState createDefaultStyle() {
     StyleState styleState = new StyleState();
     styleState.setDefaultStyle(mySettingsProvider.getDefaultStyle());
     return styleState;
   }
 
-  protected TerminalPanel createTerminalPanel(@NotNull SettingsProvider settingsProvider, @NotNull StyleState styleState, @NotNull TerminalTextBuffer terminalTextBuffer) {
+  public TerminalPanel createTerminalPanel(@NotNull SettingsProvider settingsProvider, @NotNull StyleState styleState, @NotNull TerminalTextBuffer terminalTextBuffer) {
     return new TerminalPanel(settingsProvider, terminalTextBuffer, styleState);
   }
 
-  protected @NotNull JediTerminal createTerminal(@NotNull TerminalDisplay display,
+  public @NotNull JediTerminal createTerminal(@NotNull TerminalDisplay display,
                                                  @NotNull TerminalTextBuffer textBuffer,
                                                  @NotNull StyleState initialStyleState) {
     return new JediTerminal(display, textBuffer, initialStyleState);
@@ -135,7 +135,7 @@ public class JediTermWidget extends JPanel implements TerminalSession, TerminalW
 
   @SuppressWarnings({"removal", "DeprecatedIsStillUsed"})
   @Deprecated(forRemoval = true)
-  private PreConnectHandler createPreConnectHandler(JediTerminal terminal) {
+  public PreConnectHandler createPreConnectHandler(JediTerminal terminal) {
     return new PreConnectHandler(terminal);
   }
 
@@ -160,7 +160,7 @@ public class JediTermWidget extends JPanel implements TerminalSession, TerminalW
     }
   }
 
-  protected @NotNull TerminalExecutorServiceManager createExecutorServiceManager() {
+  public @NotNull TerminalExecutorServiceManager createExecutorServiceManager() {
     return new JediTermExecutorServiceManager();
   }
 
@@ -185,7 +185,7 @@ public class JediTermWidget extends JPanel implements TerminalSession, TerminalW
     myTerminalPanel.setTerminalStarter(myTerminalStarter);
   }
 
-  protected TerminalStarter createTerminalStarter(@NotNull JediTerminal terminal, @NotNull TtyConnector connector) {
+  public TerminalStarter createTerminalStarter(@NotNull JediTerminal terminal, @NotNull TtyConnector connector) {
     return new TerminalStarter(terminal, connector,
       new TtyBasedArrayDataStream(connector, myTypeAheadManager::onTerminalStateChanged), myTypeAheadManager, getExecutorServiceManager());
   }
@@ -225,7 +225,7 @@ public class JediTermWidget extends JPanel implements TerminalSession, TerminalW
     stopRunningSession();
   }
 
-  private void stopRunningSession() {
+  public void stopRunningSession() {
     Session session = myRunningSession.get();
     if (session != null) {
       session.stop();
@@ -285,7 +285,7 @@ public class JediTermWidget extends JPanel implements TerminalSession, TerminalW
       }).withMnemonicKey(KeyEvent.VK_F));
   }
 
-  private void showFindText() {
+  public void showFindText() {
     if (myFindComponent == null) {
       myFindComponent = createSearchComponent();
 
@@ -343,11 +343,11 @@ public class JediTermWidget extends JPanel implements TerminalSession, TerminalW
     }
   }
 
-  protected @NotNull JediTermSearchComponent createSearchComponent() {
+  public @NotNull JediTermSearchComponent createSearchComponent() {
     return new JediTermDefaultSearchComponent(this);
   }
 
-  private void findText(String text, boolean ignoreCase) {
+  public void findText(String text, boolean ignoreCase) {
     FindResult results = TerminalSearchUtil.searchInTerminalTextBuffer(getTerminalTextBuffer(), text, ignoreCase);
     myTerminalPanel.setFindResult(results);
     myFindComponent.onResultUpdated(results);
@@ -363,9 +363,9 @@ public class JediTermWidget extends JPanel implements TerminalSession, TerminalW
     this.myNextActionProvider = actionProvider;
   }
 
-  private static class Session {
-    private final EmulatorTask myEmulatorTask;
-    private final Future<?> mySessionFuture;
+  public static class Session {
+    public final EmulatorTask myEmulatorTask;
+    public final Future<?> mySessionFuture;
 
     public Session(@NotNull EmulatorTask emulatorTask, @NotNull Future<?> sessionFuture) {
       myEmulatorTask = emulatorTask;
@@ -378,9 +378,9 @@ public class JediTermWidget extends JPanel implements TerminalSession, TerminalW
     }
   }
 
-  private class EmulatorTask implements Runnable {
-    private final TerminalStarter myStarter;
-    private final Runnable myOnDone;
+  public class EmulatorTask implements Runnable {
+    public final TerminalStarter myStarter;
+    public final Runnable myOnDone;
 
     public EmulatorTask(@NotNull Runnable onDone) {
       myStarter = Objects.requireNonNull(myTerminalStarter);
@@ -436,13 +436,13 @@ public class JediTermWidget extends JPanel implements TerminalSession, TerminalW
     return myTerminalStarter;
   }
 
-  protected void doWithTerminalStarter(@NotNull Consumer<TerminalStarter> consumer) {
+  public void doWithTerminalStarter(@NotNull Consumer<TerminalStarter> consumer) {
     myTerminalStarterFuture.thenAccept(consumer);
   }
 
-  private class FindResultScrollBarUI extends BasicScrollBarUI {
+  public class FindResultScrollBarUI extends BasicScrollBarUI {
 
-    protected void paintTrack(Graphics g, JComponent c, Rectangle trackBounds) {
+    public void paintTrack(Graphics g, JComponent c, Rectangle trackBounds) {
       super.paintTrack(g, c, trackBounds);
 
       FindResult result = myTerminalPanel.getFindResult();
@@ -462,14 +462,14 @@ public class JediTermWidget extends JPanel implements TerminalSession, TerminalW
 
   }
 
-  private static class TerminalLayout implements LayoutManager {
+  public static class TerminalLayout implements LayoutManager {
     public static final String TERMINAL = "TERMINAL";
     public static final String SCROLL = "SCROLL";
     public static final String FIND = "FIND";
 
-    private Component terminal;
-    private Component scroll;
-    private Component find;
+    public Component terminal;
+    public Component scroll;
+    public Component find;
 
     @Override
     public void addLayoutComponent(String name, Component comp) {
