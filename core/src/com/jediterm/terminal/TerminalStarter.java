@@ -24,19 +24,19 @@ import java.util.function.BiConsumer;
  * @author traff
  */
 public class TerminalStarter implements TerminalOutputStream {
-  private static final Logger LOG = LoggerFactory.getLogger(TerminalStarter.class);
+  public static final Logger LOG = LoggerFactory.getLogger(TerminalStarter.class);
 
-  private final Emulator myEmulator;
+  public final Emulator myEmulator;
 
-  private final JediTerminal myTerminal;
+  public final JediTerminal myTerminal;
 
-  private final TtyConnector myTtyConnector;
+  public final TtyConnector myTtyConnector;
 
-  private final TerminalTypeAheadManager myTypeAheadManager;
-  private final ScheduledExecutorService mySingleThreadScheduledExecutor;
-  private volatile boolean myStopped = false;
-  private volatile ScheduledFuture<?> myScheduledTtyConnectorResizeFuture;
-  private volatile boolean myIsLastSentByteEscape = false;
+  public final TerminalTypeAheadManager myTypeAheadManager;
+  public final ScheduledExecutorService mySingleThreadScheduledExecutor;
+  public volatile boolean myStopped = false;
+  public volatile ScheduledFuture<?> myScheduledTtyConnectorResizeFuture;
+  public volatile boolean myIsLastSentByteEscape = false;
 
   public TerminalStarter(@NotNull JediTerminal terminal,
                          @NotNull TtyConnector ttyConnector,
@@ -51,11 +51,11 @@ public class TerminalStarter implements TerminalOutputStream {
     mySingleThreadScheduledExecutor = executorServiceManager.getSingleThreadScheduledExecutor();
   }
 
-  protected JediEmulator createEmulator(TerminalDataStream dataStream, Terminal terminal) {
+  public JediEmulator createEmulator(TerminalDataStream dataStream, Terminal terminal) {
     return new JediEmulator(dataStream, terminal);
   }
 
-  private void execute(Runnable runnable) {
+  public void execute(Runnable runnable) {
     if (!mySingleThreadScheduledExecutor.isShutdown()) {
       mySingleThreadScheduledExecutor.execute(runnable);
     }
@@ -73,7 +73,7 @@ public class TerminalStarter implements TerminalOutputStream {
     runUnderThreadName("TerminalEmulator-" + myTtyConnector.getName(), this::doStartEmulator);
   }
 
-  private void doStartEmulator() {
+  public void doStartEmulator() {
     try {
       while ((!Thread.currentThread().isInterrupted() && !myStopped) && myEmulator.hasNext()) {
         myEmulator.next();
@@ -96,7 +96,7 @@ public class TerminalStarter implements TerminalOutputStream {
     myStopped = true;
   }
 
-  private static void runUnderThreadName(@NotNull String threadName, @NotNull Runnable runnable) {
+  public static void runUnderThreadName(@NotNull String threadName, @NotNull Runnable runnable) {
     Thread currentThread = Thread.currentThread();
     String oldThreadName = currentThread.getName();
     if (threadName.equals(oldThreadName)) {
@@ -136,7 +136,7 @@ public class TerminalStarter implements TerminalOutputStream {
    * the exact same size as it had when resize was posted. Otherwise, some lines from the screen buffer
    * could escape to the scroll-back buffer and stuck there.
    */
-  private void scheduleTtyConnectorResize(@NotNull TermSize termSize) {
+  public void scheduleTtyConnectorResize(@NotNull TermSize termSize) {
     ScheduledFuture<?> scheduledTtyConnectorResizeFuture = myScheduledTtyConnectorResizeFuture;
     if (scheduledTtyConnectorResizeFuture != null) {
       scheduledTtyConnectorResizeFuture.cancel(false);
@@ -205,7 +205,7 @@ public class TerminalStarter implements TerminalOutputStream {
     });
   }
 
-  private void logWriteError(@NotNull IOException e) {
+  public void logWriteError(@NotNull IOException e) {
     LOG.info("Cannot write to TtyConnector " + myTtyConnector.getClass().getName() + ", connected: " + myTtyConnector.isConnected(), e);
   }
 
